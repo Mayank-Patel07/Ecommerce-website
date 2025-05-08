@@ -1,0 +1,88 @@
+.Home {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 90vh;
+
+}
+
+
+/* CSS */
+.button {
+  align-items: center;
+  background-clip: padding-box;
+  /* background-color: #fa6400; */
+  background-color: #eee8d3;
+  border: 1px solid transparent;
+  border-radius: .25rem;
+  box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: system-ui,-apple-system,system-ui,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  justify-content: center;
+  line-height: 1.25;
+  margin: 0;
+  min-height: 3rem;
+  padding: calc(.875rem - 1px) calc(1.5rem - 1px);
+  position: relative;
+  text-decoration: none;
+  transition: all 250ms;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: baseline;
+  width: auto;
+}
+
+.button:hover,
+.button:focus {
+  background-color: #fb8332;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  background-color: #f67723;
+}
+
+.button:active {
+  background-color: #c85000;
+  box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
+  transform: translateY(0);
+}
+
+.Home::before {
+    content: "";
+    position: absolute;
+    background: linear-gradient(rgba(0, 0, 0, 0.6),
+            rgba(0, 0, 0, 0.6)), url(../assets/Background.jpg) no-repeat center center/cover;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    opacity: 1;
+    /* Full opacity since gradient already controls darkness */
+    top: 0px;
+    left: 0px;
+    filter: grayscale(30%);
+    /* Optional: Slight grayscale */
+    -webkit-filter: grayscale(30%);
+}
+
+
+.heading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+.HomePara {
+    color: white;
+    margin: 0px 15px;
+}

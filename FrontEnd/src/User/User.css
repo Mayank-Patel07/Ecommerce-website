@@ -1,0 +1,158 @@
+.card-container {
+  display: flex;
+  /* justify-content: space-between; */
+  flex-wrap: wrap;
+}
+
+
+.form-control {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 2px solid rgb(9, 204, 230);
+  border-color: linear-gradient(90deg,rgba(65, 117, 111, 1) 26%, rgba(15, 27, 29, 1) 100%);
+}
+
+/* CSS */
+.button-create {
+  color: rgb(215, 244, 228);
+  background:
+  linear-gradient(90deg,rgba(65, 117, 111, 1) 26%, rgba(15, 27, 29, 1) 100%);
+  border: 0;
+  border-radius: 12px;
+  /* color: #FFFFFF; */
+  cursor: pointer;
+  display: inline-block;
+  font-family: -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 2.5;
+  outline: transparent;
+  padding: 0 1rem;
+  text-align: center;
+  text-decoration: none;
+  transition: box-shadow .2s ease-in-out;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+
+input[type="file"] {
+  /* margin: auto; */
+  /* padding: 1.5em; */
+  /* border: 2px dashed #bbb; */
+  transition: border-color .25s ease-in-out;
+  color: white;
+
+  &::file-selector-button {
+    padding: 1em;
+    border-width: 0;
+    border-radius: 2em;
+    color: white;
+    background:
+    linear-gradient(90deg,rgba(65, 117, 111, 1) 26%, rgba(15, 27, 29, 1) 100%);
+    transition: all .25s ease-in-out;
+    cursor: pointer;
+  }
+
+  &:hover {
+    border-color: #888;
+  }
+}
+
+
+
+.button-create:not([disabled]):focus {
+  box-shadow: 0 0 .25rem rgba(0, 0, 0, 0.5), -.125rem -.125rem 1rem rgba(239, 71, 101, 0.5), .125rem .125rem 1rem rgba(255, 154, 90, 0.5);
+}
+
+.button-create:not([disabled]):hover {
+  box-shadow: 0 0 .25rem rgba(0, 0, 0, 0.5), -.125rem -.125rem 1rem rgba(239, 71, 101, 0.5), .125rem .125rem 1rem rgba(255, 154, 90, 0.5);
+}
+
+.card {
+  margin: 10px;
+}
+
+.bor {
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+
+.pro {
+  background-color: rgb(169, 169, 169);
+  color: white;
+  height: 40px;
+  display: flex;
+  padding-left: 15px;
+  align-items: center;
+  border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+}
+
+
+/* CSS */
+.button-select {
+
+
+  /* const [color, setcolor] = useState(" #294948");
+
+  class={`navbar nav navbar-expand-lg navbar-light bg-${color}`}
+         */
+
+  background-image: linear-gradient(to right, #294948 0%, #03070A 100%);
+  border: 1px solid #0077CC;
+  border-radius: 4px;
+  box-sizing: border-box;
+  color: #FFFFFF;
+  cursor: pointer;
+  direction: ltr;
+  display: block;
+  font-family: "SF Pro Text","SF Pro Icons","AOS Icons","Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -.022em;
+  line-height: 1.47059;
+  min-width: 30px;
+  overflow: visible;
+  padding: 4px 15px;
+  text-align: center;
+  vertical-align: baseline;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+
+.button-select:disabled {
+  cursor: default;
+  opacity: .3;
+}
+
+.button-select:hover {
+  background-image: linear-gradient(#092f12, #2f4d0d);
+  border-color: #032e4d;
+  text-decoration: none;
+}
+
+.button-select:active {
+  background-image: linear-gradient(#1b3041, #0f202e);
+  border-color: #072235;
+  outline: none;
+}
+
+.button-select:focus {
+  box-shadow: rgba(131, 192, 253, 0.5) 0 0 0 3px;
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .card {
+    width: calc(100% - 20px);
+  }
+}

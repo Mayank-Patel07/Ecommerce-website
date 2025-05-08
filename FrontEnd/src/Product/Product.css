@@ -1,0 +1,96 @@
+.card-container {
+    display: flex;
+    /* justify-content: space-between; */
+    flex-wrap: wrap;
+  }
+  
+  
+  /* CSS */
+  .button-create {
+    color: rgb(215, 244, 228);
+    background:
+      linear-gradient(to right, #030F03 0%, #155715 50%, #29A829 100%);
+    border: 0;
+    border-radius: 12px;
+    /* color: #FFFFFF; */
+    cursor: pointer;
+    display: inline-block;
+    font-family: -apple-system, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 2.5;
+    outline: transparent;
+    padding: 0 1rem;
+    text-align: center;
+    text-decoration: none;
+    transition: box-shadow .2s ease-in-out;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    white-space: nowrap;
+  }
+  
+  input[type="file"] {
+    /* margin: auto; */
+    /* padding: 1.5em; */
+    /* border: 2px dashed #bbb; */
+    transition: border-color .25s ease-in-out;
+    
+  
+    &::file-selector-button {
+      padding: 1em;
+      border-width: 0;
+      border-radius: 2em;
+      background:
+      linear-gradient(90deg,rgba(65, 117, 111, 1) 26%, rgba(15, 27, 29, 1) 100%);
+      transition: all .25s ease-in-out;
+      cursor: pointer;
+    }
+  
+    &:hover {
+      border-color: #888;
+    }
+  }
+  
+  
+  
+  .button-create:not([disabled]):focus {
+    box-shadow: 0 0 .25rem rgba(0, 0, 0, 0.5), -.125rem -.125rem 1rem rgba(239, 71, 101, 0.5), .125rem .125rem 1rem rgba(255, 154, 90, 0.5);
+  }
+  
+  .button-create:not([disabled]):hover {
+    box-shadow: 0 0 .25rem rgba(0, 0, 0, 0.5), -.125rem -.125rem 1rem rgba(239, 71, 101, 0.5), .125rem .125rem 1rem rgba(255, 154, 90, 0.5);
+  }
+  
+  .card {
+    margin: 10px;
+  }
+  
+  .bor {
+    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  }
+  
+  .pro {
+    background-color: rgb(169, 169, 169);
+    color: white;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    -ms-border-radius: 3px;
+    -o-border-radius: 3px;
+  }
+  
+  @media (max-width: 768px) {
+    .card {
+      width: calc(100% - 20px);
+    }
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  }
+  
