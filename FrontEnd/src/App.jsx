@@ -110,7 +110,7 @@ export default function App() {
               <Route path="/thankyou" element={<ThankYou />} />
             </Routes>
             {/* Toast Container should be placed once at the root */}
-            <ToastContainer position="top-right" autoClose={3000} />
+            <ToastContainer position="top-right" autoClose={2000} />
           </BrowserRouter>
         </CartProvider>
       </AuthProvider>

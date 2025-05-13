@@ -5,40 +5,32 @@ export const AuthContext = createContext();
 
 // Helper to handle both Base64 and URL images
 const processUserImage = (userData) => {
-  // If no user data or no image, return as is
-  // This is to prevent errors when destructuring userData.image
   if (!userData || !userData.image) return userData;
 
-  // Make a copy to avoid modifying the original
+  // Check if image is already in the correct format
   const processedData = { ...userData };
 
-  // If the image is already a Base64 string, keep it as is
+  // Standardize image processing
   if (processedData.image.startsWith("data:image")) {
     return processedData;
   }
 
-  // If the image is a URL (starts with http), keep it as is
+  // Check if image is a URL
+  // This regex checks for a valid URL format
   if (processedData.image.startsWith("http")) {
     return processedData;
   }
 
-  // If we get here, it's likely a Base64 string without the prefix
-  // Check if it looks like Base64 (contains only valid Base64 characters)
+  // Handle Base64 strings and file paths
   const base64Regex = /^[A-Za-z0-9+/=]+$/;
   if (base64Regex.test(processedData.image)) {
-    // It's likely a Base64 string without the prefix
-    console.log("Found raw Base64 image data");
-    // We don't add the prefix here because we'll handle it in the Navbar component
+    // Ensure Base64 string has proper prefix
+    processedData.image = `data:image/jpeg;base64,${processedData.image}`;
   } else {
-    // It's probably a path, handle it accordingly
-    console.log("Image appears to be a path:", processedData.image);
-
-    // If it doesn't start with a slash, add one
+    // Handle file paths
     if (!processedData.image.startsWith("/")) {
       processedData.image = "/" + processedData.image;
     }
-
-    // Prepend the API URL
     processedData.image = `http://127.0.0.1:5000${processedData.image}`;
   }
 
@@ -46,43 +38,37 @@ const processUserImage = (userData) => {
 };
 
 export const AuthProvider = ({ children }) => {
+  // Initialize state
+  // Using localStorage to persist token
+  // across page refreshes
   const [token, setToken] = useState(localStorage.getItem("TOKEN"));
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // this function will be called when the component mounts
+    // and whenever the token changes
     const fetchUser = async () => {
       if (!token) {
         setUser(null);
         setLoading(false);
         return;
       }
-
       try {
-        console.log("Fetching user with token:", token);
+        // Fetch user details from the server
         const { data } = await axios.get(
           "http://127.0.0.1:5000/api/user/details",
           {
             headers: { "auth-token": token },
           }
         );
-
-        console.log("Raw data from API:", data);
-
-        // Process the user data including image handling
         const processedUser = processUserImage(data);
-
-        console.log("Processed user data:", processedUser);
         setUser(processedUser);
       } catch (err) {
-        console.error("Failed to fetch user:", err);
-
-        // If token is invalid, clear it
         if (
           err.response &&
           (err.response.status === 401 || err.response.status === 403)
         ) {
-          console.log("Invalid token, logging out");
           localStorage.removeItem("TOKEN");
           setToken(null);
         }
@@ -95,41 +81,44 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, [token]);
 
+  // Function to handle login
+  // and set the token in localStorage
   const login = (newToken) => {
-    console.log("Logging in with token:", newToken);
     localStorage.setItem("TOKEN", newToken);
     setToken(newToken);
   };
 
+  // Function to handle logout
+  // and remove the token from localStorage
+  // and reset the user state
   const logout = () => {
-    console.log("Logging out");
     localStorage.removeItem("TOKEN");
     setToken(null);
     setUser(null);
   };
 
+  // Function to update user data
+  // This function will be used to update user data
   const updateUserData = (updatedData) => {
-    console.log("Updating user data:", updatedData);
     setUser((prev) => {
+      
       const updated = { ...prev, ...updatedData };
-      console.log("New user state:", updated);
       return updated;
     });
   };
 
-  // Function to handle image upload
+  
   const updateUserImage = async (imageFile) => {
     try {
-      // Convert image to Base64
       const reader = new FileReader();
       return new Promise((resolve, reject) => {
         reader.onload = () => {
           const base64Image = reader.result;
-
-          // Update local state immediately for UI feedback
+          
+          // Update user state with preview
           setUser((prev) => ({
             ...prev,
-            previewImage: base64Image, // For immediate display
+            previewImage: base64Image,
           }));
 
           resolve(base64Image);
@@ -143,12 +132,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Function to save the image to the backend
   const saveUserImage = async (userId, imageData) => {
     try {
-      // Skip the data:image/jpeg;base64, prefix if present
-      const base64Data = imageData.includes("base64,")
-        ? imageData.split("base64,")[1]
+      // Ensure base64 data has correct prefix
+      const base64Data = imageData.startsWith('data:image')
+        ? imageData.split('base64,')[1]
         : imageData;
 
       const response = await axios.post(
@@ -159,11 +147,14 @@ export const AuthProvider = ({ children }) => {
 
       // Update user state with the saved image
       if (response.data && response.data.success) {
-        setUser((prev) => ({
-          ...prev,
-          image: base64Data, // Store just the Base64 data
-          previewImage: null, // Clear preview once saved
-        }));
+        setUser((prev) => {
+          const updatedUser = {
+            ...prev,
+            image: `data:image/jpeg;base64,${base64Data}`,
+            previewImage: null, // Clear preview
+          };
+          return updatedUser;
+        });
         return { success: true, data: response.data };
       }
 
@@ -183,8 +174,8 @@ export const AuthProvider = ({ children }) => {
         logout,
         loading,
         updateUserData,
-        updateUserImage, // New function for image upload
-        saveUserImage, // New function to save image to backend
+        updateUserImage,
+        saveUserImage,
       }}
     >
       {children}

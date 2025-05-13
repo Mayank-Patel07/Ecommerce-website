@@ -1,28 +1,83 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
+import { AuthContext } from "./AuthContext";
+
 const CartContext = createContext();
 
-// CartProvider component to provide cart context to the application
-// It uses useState to manage cart items and provides functions to add, increment, decrement, delete items, and clear the cart.
 export const CartProvider = ({ children }) => {
-  // State to hold cart items
-  // useState is a React hook that allows you to add state to functional components
-  // It returns an array with two elements: the current state and a function to update it
+  // Destructure the AuthContext to get user, loading
+  // This allows us to access the user information and loading state from the context, which is provided by the AuthProvider component
+  const { user, loading } = useContext(AuthContext);
+  // Initialize cartItems state
+  // This state will hold the items in the cart
   const [cartItems, setCartItems] = useState([]);
 
-  // Function to add a product to the cart
-  // It checks if the product already exists in the cart
-  // If it does, it increments the quantity, otherwise it adds the product with a quantity of 1
-  // The function uses the setCartItems function to update the state
-  // The function takes a product object as an argument
+  // Save latest known userId in a ref to avoid race conditions
+  // This ref will hold the user ID to ensure that we are saving the cart items for the correct user
+  // It will be updated whenever the user ID changes
+  const userIdRef = useRef("guest");
+
+  // Update userIdRef whenever loading or user changes
+  // This effect will run whenever the loading state or user changes
+  // If loading is false and user has an ID, set userIdRef to that ID
+  // If loading is false and user does not have an ID, set userIdRef to "guest"
+  useEffect(() => {
+    if (!loading && user?._id) {
+      userIdRef.current = user._id;
+    } else if (!loading && !user?._id) {
+      userIdRef.current = "guest";
+    }
+  }, [loading, user]);
+
+  // Helper function to get the storage key for localStorage
+  // This function takes a userId as an argument and returns a string that will be used as the key for localStorage
+  const getStorageKey = (userId) => `cart_${userId || "guest"}`;
+
+  // Load cart from localStorage
+  useEffect(() => {
+    // If loading is true, do not run this effect
+    // This is to ensure that we are not trying to access user data before it is loaded
+    if (loading) return;
+
+    // Get the user ID from the user object or set it to "guest" if not available
+    // This is to ensure that we are using the correct user ID for localStorage
+    const userId = user?._id || "guest";
+    const storageKey = getStorageKey(userId);
+    // Get the cart items from localStorage using the storage key
+    const savedCart = localStorage.getItem(storageKey);
+    try {
+      // Parse the saved cart items from localStorage
+      // If there are no saved cart items, set cartItems to an empty array
+      setCartItems(savedCart ? JSON.parse(savedCart) : []);
+    } catch (err) {
+      console.error("Failed to parse cart:", err);
+      setCartItems([]);
+    }
+  }, [user?._id, loading]);
+
+  // Save cart to localStorage
+  useEffect(() => {
+    // If loading is true, do not run this effect
+    if (loading) return;
+
+    // Saving the current ref value
+    // This is to ensure that we are using the correct user ID for localStorage
+    // This will be the user ID that we saved in the userIdRef
+    const userId = userIdRef.current;
+    const storageKey = getStorageKey(userId);
+    // Save the cart items to localStorage using the storage key
+    // This will save the current cart items to localStorage
+    localStorage.setItem(storageKey, JSON.stringify(cartItems));
+    // If the user is not a guest, send the cart items to the server
+    // This will send the current cart items to the server to be saved
+  }, [cartItems, loading]);
+
   const addToCart = (product) => {
     // Check if the product is already in the cart
+    // If it is, increment the quantity
     setCartItems((prev) => {
-      // If the product is already in the cart, increment its quantity
-      // If not, add it to the cart with a quantity of 1
       const exist = prev.find((item) => item._id === product._id);
       // If the product already exists in the cart, increment its quantity
-      // Otherwise, add it to the cart with a quantity of 1
       if (exist) {
         return prev.map((item) =>
           item._id === product._id
@@ -31,18 +86,13 @@ export const CartProvider = ({ children }) => {
         );
       }
       // If the product does not exist in the cart, add it with a quantity of 1
-      // The spread operator (...) is used to create a new array with the existing items and the new product
-      // The new product is created by spreading the properties of the product object and adding a quantity property with a value  of 1
+      // This will add the product to the cart with a quantity of 1
       return [...prev, { ...product, quantity: 1 }];
     });
   };
 
-  // Function to increment the quantity of a product in the cart
-  // The function takes the product ID as an argument
-  // It takes the product ID as an argument and updates the cart items state
-  // It maps over the previous cart items and increments the quantity of the product with the matching ID
-  // The spread operator (...) is used to create a new array with the updated item
-  // The function uses the setCartItems function to update the state
+  // Increment and decrement quantity functions
+  // These functions will be used to increment and decrement the quantity of items in the cart
   const incrementQty = (id) => {
     setCartItems((prev) =>
       prev.map((item) =>
@@ -51,19 +101,8 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // Function to clear the cart
-  // It sets the cart items state to an empty array, effectively removing all items from the cart
-  // The function uses the setCartItems function to update the state
-  const clearCart = () => {
-    setCartItems([]);
-  };
-
-  // Function to decrement the quantity of a product in the cart
-  // The function takes the product ID as an argument
-  // It maps over the previous cart items and decrements the quantity of the product with the matching ID
-  // If the quantity becomes 0, the item is removed from the cart
-  // The spread operator (...) is used to create a new array with the updated item
-  // The function uses the setCartItems function to update the state
+  // Decrement quantity function
+  // This function will be used to decrement the quantity of items in the cart
   const decrementQty = (id) => {
     setCartItems((prev) =>
       prev
@@ -74,17 +113,20 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  // Function to delete an item from the cart
-  // The function takes the product ID as an argument
-  // It filters the cart items to remove the item with the matching ID
+  // Delete item function
+  // This function will be used to delete an item from the cart
   const deleteItem = (id) => {
     setCartItems((prev) => prev.filter((item) => item._id !== id));
     toast.success("Item deleted successfully");
   };
 
+  // Clear cart function
+  // This function will be used to clear the entire cart
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
   return (
-    // The CartContext.Provider component provides the cart context to its children
-    // It takes a value prop that contains the cart items and functions to manage the cart  
     <CartContext.Provider
       value={{
         cartItems,

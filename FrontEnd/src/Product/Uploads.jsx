@@ -1,10 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+// import { AuthContext } from "../context/AuthContext";
 
 export default function Uploads() {
   const navigate = useNavigate();
+
+  // const { user } = useContext(AuthContext);
+
+  // const [token, setToken] = useState(localStorage.getItem("TOKEN"));
+
+  const token = localStorage.getItem("TOKEN");
+  const [user, setUser] = useState([]);
 
   // State to hold product details
   const [products, setProducts] = useState({
@@ -18,6 +26,40 @@ export default function Uploads() {
 
   // State to hold Errors
   const [errors, setErrors] = useState({});
+
+  const [allProducts, setAllProducts] = useState([]);
+
+  // Fetch all products on component mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get(
+          "http://127.0.0.1:5000/api/product/allproducts"
+        );
+        setAllProducts(res.data);
+
+        if (!token) {
+          setUser(null);
+          return;
+        }
+
+        // Fetch user details from the server
+        const { data } = await axios.get(
+          "http://127.0.0.1:5000/api/user/details",
+          {
+            headers: { "auth-token": token },
+          }
+        );
+        // console.log("User data:", data);
+        // console.log("User data:", data.email);
+        setUser(data);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      }
+    };
+
+    fetchProducts();
+  }, []);
 
   // Functions to upload base64 image
   const updateImage = async (event) => {
@@ -69,7 +111,7 @@ export default function Uploads() {
         toast.warn("Please login to add items to cart");
         navigate("/login");
       } else {
-        toast.success("Added to cart successfully!");
+        // toast.success("Added to cart successfully!");
         try {
           //  Uploads the product data to the server
           // If the product is uploaded successfully, it redirects to the all products page
@@ -89,12 +131,72 @@ export default function Uploads() {
     }
   };
 
-  const token = localStorage.getItem("TOKEN");
+  // Delete single product
+  const deleteProductById = async (id) => {
+    const confirm = window.confirm(
+      "Are you sure you want to delete this product?"
+    );
+    if (!confirm) return;
+
+    try {
+      await axios.delete(`http://127.0.0.1:5000/api/product/item/${id}`, {
+        headers: {
+          "auth-token": token,
+        },
+      });
+      toast.success("Product deleted");
+      setAllProducts(allProducts.filter((p) => p._id !== id));
+    } catch (err) {
+      toast.error("Delete failed");
+    }
+  };
 
   return (
     <>
-      {token ? (
+      {token && user.email === import.meta.env.VITE_API_MAIL ? (
         <div className="container mt-4">
+          <div className="container mt-5">
+            <div className="alert alert-warning text-center fs-5 fw-semibold">
+              🧾 All Uploaded Porduct List on Website
+            </div>
+
+            <div className="row">
+              {allProducts.map((product) => (
+                <div
+                  key={product._id}
+                  className="col-md-6 col-lg-4 mb-4 d-flex align-items-stretch"
+                >
+                  <div className="card shadow-sm w-100 border-0">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="card-img-top"
+                      style={{ height: "200px", objectFit: "cover" }}
+                    />
+                    <div className="card-body d-flex flex-column">
+                      <h5 className="card-title">{product.name}</h5>
+                      <p className="card-text mb-1">
+                        <strong>Brand:</strong> {product.brand}
+                      </p>
+                      <p className="card-text mb-1">
+                        <strong>Price:</strong> ₹{product.price}
+                      </p>
+                      <p className="card-text mb-3">
+                        <strong>Category:</strong> {product.category}
+                      </p>
+                      <button
+                        className="btn btn-outline-danger mt-auto"
+                        onClick={() => deleteProductById(product._id)}
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="alert alert-warning text-center fs-5 fw-semibold">
             📦 Upload a New Product to List on Website
           </div>
@@ -103,7 +205,7 @@ export default function Uploads() {
             <div className="col-md-6 col-lg-5">
               <div className="card shadow-lg p-4 rounded-4">
                 <h4 className="mb-4 text-center text-dark">
-                  📝 New Product Form
+                  📝 Upload New Product
                 </h4>
                 <form onSubmit={dataSubmit} noValidate>
                   <div className="mb-3">
@@ -224,8 +326,9 @@ export default function Uploads() {
             animation: "fadeIn 1s ease-in-out",
           }}
         >
-          <span style={{ color: "#8B0000" }}>Access Denied:</span> Please{" "}
-          <strong>Login First</strong> to upload a product.
+          <span style={{ color: "#8B0000" }}>Access Denied</span>
+          {/* Please{" "}
+          <strong>Login First</strong> to upload a product. */}
         </div>
       )}
     </>

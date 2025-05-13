@@ -194,6 +194,7 @@ const Checkout = () => {
     // Join the address parts with a comma and space
     // Return the formatted address or a default message if no parts are found
     return parts.length ? parts.join(", ") : "No address information";
+    // This is done to ensure the address is correctly formatted for display
   };
 
   return (
@@ -252,7 +253,17 @@ const Checkout = () => {
                     }
                     name={field}
                     value={user[field] || ""}
-                    onChange={update}
+                    onChange={(e) => {
+                      let value = e.target.value;
+
+                      if (field === "phone") {
+                        // Remove non-digits and limit to 10 characters
+                        value = value.replace(/\D/g, "").slice(0, 10);
+                      }
+
+                      // Update the user state with the new value
+                      update({ target: { name: field, value } });
+                    }}
                     placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
                   />
                 </Form.Group>

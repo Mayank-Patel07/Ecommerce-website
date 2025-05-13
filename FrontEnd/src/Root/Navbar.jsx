@@ -36,7 +36,8 @@ export default function Navbar({ Dis_data, setDis_Data }) {
     { path: "/mens", label: "Men's Wear" },
     { path: "/kids", label: "Kids Wear" },
     { path: "/womens", label: "Women's Wear" },
-    { path: "/uploads", label: "Upload" },
+    { path: "/cart", label: "🛒 Cart" },
+    { path: "/uploads", label: "Admin Panel" },
   ];
 
   // Helper function to render user avatar properly
@@ -60,13 +61,15 @@ export default function Navbar({ Dis_data, setDis_Data }) {
       const isBase64 = user.image.startsWith("data:image");
 
       return (
+        // If it's a Base64 string, use it directly; otherwise, prepend the Base64 prefix
+        // This ensures that the image is displayed correctly in the <img> tag
         <img
           src={isBase64 ? user.image : `data:image/jpeg;base64,${user.image}`}
           alt="Profile"
           className="rounded-circle me-2"
           style={{ width: "24px", height: "24px", objectFit: "cover" }}
           onError={(e) => {
-            console.error("Image failed to load:", e);
+            // console.error("Image failed to load:", e);
             e.target.onerror = null; // Prevent infinite error loop
             e.target.src =
               "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%23718096'/%3E%3Cpath d='M12 14c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v1h16v-1c0-2.66-5.33-4-8-4z' fill='%23ffffff'/%3E%3C/svg%3E";
@@ -111,17 +114,22 @@ export default function Navbar({ Dis_data, setDis_Data }) {
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             {navLinks.map((link) => (
               <li className="nav-item" key={link.path}>
-                <Link className="nav-link text-white" to={link.path}>
-                  {link.label}
-                </Link>
+                {link.label === "Admin Panel" &&
+                user?.email !== import.meta.env.VITE_API_MAIL ? (
+                  <span
+                    className="nav-link text-secondary"
+                    style={{ cursor: "not-allowed", opacity: 0.6 }}
+                    title="Only admin can access uploads"
+                  >
+                    {link.label}
+                  </span>
+                ) : (
+                  <Link className="nav-link text-white" to={link.path}>
+                    {link.label}
+                  </Link>
+                )}
               </li>
             ))}
-
-            <li className="nav-item">
-              <Link className="nav-link text-white" to="/cart">
-                🛒 Cart
-              </Link>
-            </li>
           </ul>
 
           <ul className="navbar-nav">

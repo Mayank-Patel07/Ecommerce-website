@@ -48,6 +48,10 @@ app.use("/api/product", require("./routes/product"));
 app.use("/api/order", require("./routes/order"));
 
 
+// app.use("/uploads", express.static("uploads"));
+// Serve static files from the "uploads" directory
+// This middleware serves static files from the "uploads" directory
+
 app.listen(Port,Hostname, () => {
 //   console.log(`Example app listening on port ${port}`)
   console.log(`Example app listening on port http://${Hostname}:${Port}`)

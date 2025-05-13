@@ -30,7 +30,18 @@ export default function Register({ Dis_data, setDis_Data }) {
   // Function for updating the state of the form fields
   const update = (e) => {
     const { name, value } = e.target;
-    setUser({ ...user, [name]: value });
+
+    // If the field is 'phone', allow only digits and max 10 characters
+    if (name === "phone") {
+      // Allow only numbers and restrict length to 10
+      const digitsOnly = value.replace(/\D/g, ""); // Remove non-numeric characters
+      if (digitsOnly.length <= 10) {
+        setUser({ ...user, [name]: digitsOnly });
+      }
+    } else {
+      // For other fields, update normally
+      setUser({ ...user, [name]: value });
+    }
   };
 
   const navigate = useNavigate();
@@ -249,7 +260,7 @@ export default function Register({ Dis_data, setDis_Data }) {
 
             <div className="form-group m-2">
               <input
-                type="number"
+                type="text"
                 name="phone"
                 value={user.phone}
                 onChange={update}

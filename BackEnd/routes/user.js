@@ -194,44 +194,65 @@ router.put("/:id", fetchuser, async (req, res) => {
   if (!req.userDataReq) {
     return res.status(401).json({ error: "Unauthorized access" });
   }
+
+  if (!req.params.id) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
+
   try {
     // Check if the user ID is present in the request
     let user = await User.findById(req.params.id);
-    // If the user ID is not found, return an error response
-    // The findById method searches for a user with the specified ID in the database
     if (!user) {
-      return res.status(404).json({ message: "Something in wrong" });
+      // If the user ID is not found, return an error response
+      // The findById method searches for a user with the specified ID in the database
+      return res.status(404).json({ message: "User not found" });
     }
 
-    let Update_user = {
-      name: req.body.name,
-      email: req.body.email,
-      phone: req.body.phone,
-      city: req.body.city,
-      image: req.body.image,
-      state: req.body.state,
-      district: req.body.district,
-      pincode: req.body.pincode,
-      address: req.body.address,
-      password: req.body.password,
+    const {
+      name,
+      email,
+      phone,
+      city,
+      state,
+      district,
+      pincode,
+      address,
+      password,
+      image, //  Add image here
+    } = req.body;
+
+    let updateFields = {
+      name,
+      email,
+      phone,
+      city,
+      state,
+      district,
+      pincode,
+      address,
+      password,
     };
+
+    if (image) {
+      updateFields.image = image; //  Add image only if it's provided
+    }
+
     // Find the user by ID and update the user details
     // The findByIdAndUpdate method searches for a user with the specified ID in the database
-    Update_user = await User.findByIdAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      {
-        $set: Update_user,
-      },
+      { $set: updateFields },
       { new: true }
     );
+
     // Send the updated user details in the response
     // The new option is set to true to return the updated user object
     res.status(200).json({
-      message: `Update successfully with id ${req.params.id}`,
-      Update_user,
+      message: `Updated successfully with id ${req.params.id}`,
+      updatedUser,
     });
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({
       message: "Internal server error",
     });

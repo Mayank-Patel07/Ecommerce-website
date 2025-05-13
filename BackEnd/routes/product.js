@@ -117,4 +117,22 @@ router.get("/item/:id", async (req, res) => {
   }
 });
 
+// Route 5 Delete single products using delete . /api/product/item/:id  login required ...
+
+router.delete("/item/:id", fetchuser, async (req, res) => {
+  try {
+    // Fetch all products from the database
+    // Find the product by ID and delete it
+    // The findByIdAndDelete method searches for a product with the specified ID in the database and deletes it
+    let products = await Product.findByIdAndDelete(req.params.id);
+    if (!products) {
+      return res.status(404).json({ message: "Something in wrong" });
+    }
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 module.exports = router;
