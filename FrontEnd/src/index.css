@@ -2,3 +2,15 @@
   margin: 0;
   padding: 0;
 }
+
+.card-title {
+  font-weight: 600;
+}
+.card-text {
+  font-size: 0.9rem;
+}
+
+.thank-you-container {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+}
+

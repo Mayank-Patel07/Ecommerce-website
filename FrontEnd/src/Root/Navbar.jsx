@@ -118,7 +118,11 @@ export default function Navbar({ Dis_data, setDis_Data }) {
                 user?.email !== import.meta.env.VITE_API_MAIL ? (
                   <span
                     className="nav-link text-secondary"
-                    style={{ cursor: "not-allowed", opacity: 0.6 }}
+                    style={{
+                      cursor: "not-allowed",
+                      opacity: 0.6,
+                      display: "none",
+                    }}
                     title="Only admin can access uploads"
                   >
                     {link.label}

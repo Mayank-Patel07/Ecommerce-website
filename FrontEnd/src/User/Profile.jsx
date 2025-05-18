@@ -59,11 +59,17 @@ export default function Profile() {
     
     // Special handling for phone number
     if (name === "phone") {
+      // Allow only digits and limit to 10 characters
+      // This regex replaces all non-digit characters with an empty string
       const digitsOnly = value.replace(/\D/g, "");
       if (digitsOnly.length <= 10) {
+        // Update form data with digits only
         setFormData(prev => ({ ...prev, [name]: digitsOnly }));
       }
     } else {
+      // Update form data for other fields
+      // This will update the form data with the new value
+      // The spread operator is used to copy the existing form data
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };

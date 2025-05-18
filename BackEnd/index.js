@@ -9,7 +9,7 @@ dotenv.config({
   path: "./.env",
 });
 
-// Configure CORS to allow requests from the frontend or different origin 
+// Configure CORS to allow requests from the frontend or different origin
 app.use(cors());
 
 // Middleware to parse JSON requests
@@ -19,14 +19,15 @@ app.use(cors());
 app.use(express.json());
 
 // Environment variables
-const DB_URL = process.env.MongoDB_URL
-const Port = process.env.Port
-const Hostname = process.env.Hostname
+// The environment variables are loaded from the .env file using dotenv
+const DB_URL = process.env.MongoDB_URL;
+const Port = process.env.Port;
+const Hostname = process.env.Hostname;
 
 // Default Route
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
 
 // Connect to MongoDB
 async function connectDB() {
@@ -35,9 +36,9 @@ async function connectDB() {
       // useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('Connected to MongoDB');
+    console.log("Connected to MongoDB");
   } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
+    console.error("Error connecting to MongoDB:", error);
   }
 }
 connectDB();
@@ -46,13 +47,13 @@ connectDB();
 app.use("/api/user", require("./routes/user"));
 app.use("/api/product", require("./routes/product"));
 app.use("/api/order", require("./routes/order"));
-
+app.use("/api/payment", require("./routes/payment"));
 
 // app.use("/uploads", express.static("uploads"));
 // Serve static files from the "uploads" directory
 // This middleware serves static files from the "uploads" directory
 
-app.listen(Port,Hostname, () => {
-//   console.log(`Example app listening on port ${port}`)
-  console.log(`Example app listening on port http://${Hostname}:${Port}`)
-})
+app.listen(Port, Hostname, () => {
+  //   console.log(`Example app listening on port ${port}`)
+  console.log(`Example app listening on port http://${Hostname}:${Port}`);
+});

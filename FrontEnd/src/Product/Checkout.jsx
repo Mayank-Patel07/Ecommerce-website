@@ -3,8 +3,16 @@ import { useCart } from "../context/CartContext";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { Modal, Button, Form } from "react-bootstrap";
-
+import {
+  Card,
+  Button,
+  ListGroup,
+  Container,
+  Row,
+  Col,
+  Modal,
+  Form,
+} from "react-bootstrap";
 const Checkout = () => {
   // Context
   // Importing the CartContext to manage cart items and actions
@@ -121,52 +129,111 @@ const Checkout = () => {
   // This function sends a POST request to the API to create an order
   // This includes the cart items, payment method, total amount, and user address
   // This is done to place the order and redirect the user to the thank you page
+
   const handlePay = async () => {
-    // Checking the cart is empty or not
-    // This is done to ensure the user has items in their cart before proceeding to payment
     if (!cartItems.length) {
       toast.warn("Cart is empty!");
       return;
     }
 
     const token = localStorage.getItem("TOKEN");
-    try {
-      // Safe address concatenation with null checks
-      // This is done to ensure the address is correctly formatted for the API request
-      const fullAddress = `${user.address || ""}, ${user.city || ""}, ${
-        user.district || ""
-      }, ${user.state || ""} - ${user.pincode || ""}`;
 
-      // Sending the order details to the API
-      // This includes the cart items, payment method, total amount, and user address
-      await axios.post(
-        "http://127.0.0.1:5000/api/order",
-        {
-          cartItems,
-          paymentMethod,
-          totalAmount,
-          address: fullAddress,
-        },
-        {
-          headers: { "auth-token": token },
-        }
-      );
-      // Show success message using toast
-      // This is done to inform the user that their order has been placed successfully
-      toast.success("Order placed successfully!");
+    const fullAddress = `${user.address || ""}, ${user.city || ""}, ${
+      user.district || ""
+    }, ${user.state || ""} - ${user.pincode || ""}`;
 
-      // Clear the cart after successful order placement
-      // This is done to reset the cart items after the order is placed
-      clearCart();
-      navigate("/thankyou");
-    } catch (error) {
-      toast.error("Failed to place order.");
+    if (paymentMethod === "cod") {
+      // Cash on Delivery flow
+      try {
+        await axios.post(
+          "http://127.0.0.1:5000/api/order",
+          {
+            cartItems,
+            paymentMethod,
+            totalAmount,
+            address: fullAddress,
+          },
+          {
+            headers: { "auth-token": token },
+          }
+        );
+        toast.success("Order placed successfully!");
+        clearCart();
+        navigate("/thankyou");
+      } catch (error) {
+        toast.error("Failed to place order.");
+      }
+    } else {
+      // Card Payment via Razorpay
+      try {
+        const { data } = await axios.post(
+          "http://127.0.0.1:5000/api/payment/razorpay",
+          { amount: totalAmount * 100 }, // Razorpay works in paise
+          {
+            headers: { "auth-token": token },
+          }
+        );
+        console.log(data);
+
+        const options = {
+          key: import.meta.env.VITE_API_RAZORPAY_KEY_ID,
+          amount: data.amount,
+          currency: data.currency,
+          order_id: data.id,
+          name: "My E-commerce Site",
+          description: "Test Transaction",
+
+          // Callback function to handle payment success
+          handler: async function (response) {
+            try {
+              await axios.post(
+                "http://127.0.0.1:5000/api/order",
+                {
+                  cartItems,
+                  paymentMethod,
+                  totalAmount,
+                  address: fullAddress,
+                  paymentId: response.razorpay_payment_id,
+                  orderId: response.razorpay_order_id,
+                  signature: response.razorpay_signature,
+                },
+                {
+                  headers: { "auth-token": token },
+                }
+              );
+              toast.success("Payment successful and order placed!");
+              clearCart();
+              navigate("/thankyou");
+            } catch (err) {
+              toast.error(
+                "Payment succeeded but order failed. Please contact support."
+              );
+            }
+          },
+
+          prefill: {
+            // Prefill user details in the Razorpay payment form
+            name: user.name,
+            email: user.email,
+            contact: user.phone,
+          },
+          theme: {
+            color: "#3399cc",
+          },
+        };
+
+        // Load Razorpay script dynamically
+        //  This is done to ensure Razorpay script is loaded before using it
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+      } catch (err) {
+        toast.error("Failed to initiate payment.");
+      }
     }
   };
 
-  // Function to handle the update of user details in the modal
+  // Function to update user details in the state
   // This is called when the user types in the input fields in the modal
-  // This function updates the user state with the new values entered by the user
   const update = (e) => {
     const { name, value } = e.target;
     setUser((prevUser) => ({ ...prevUser, [name]: value }));
@@ -198,16 +265,16 @@ const Checkout = () => {
   };
 
   return (
-    <div className="container py-5">
-      <h1 className="mb-4 text-center">🧾 Checkout</h1>
+    <Container className="py-3">
+      <h1 className="text-center fw-bold  mb-3">🧾 Checkout</h1>
 
       {/* Billing Address */}
-      <div className="card mb-4 shadow-sm">
-        <div className="card-header d-flex justify-content-between align-items-center">
+      <Card className="mb-3 shadow-lg border-0 rounded-4">
+        <Card.Header className="bg-dark text-white d-flex justify-content-between align-items-center rounded-top-4 px-4 py-3">
           <h5 className="mb-0">Billing Address</h5>
-          <button
-            type="button"
-            className="btn btn-sm btn-dark"
+          <Button
+            variant="dark"
+            size="sm"
             onClick={handleShow}
             style={{
               background:
@@ -216,8 +283,8 @@ const Checkout = () => {
             }}
           >
             Edit Address
-          </button>
-        </div>
+          </Button>
+        </Card.Header>
 
         <Modal show={show} onHide={handleClose} centered>
           <Modal.Header
@@ -242,7 +309,10 @@ const Checkout = () => {
                 "pincode",
                 "address",
               ].map((field) => (
-                <Form.Group className="mb-2" key={field}>
+                <Form.Group className="mb-3" key={field}>
+                  <Form.Label className="text-capitalize fw-semibold">
+                    {field}
+                  </Form.Label>
                   <Form.Control
                     as={field === "address" ? "textarea" : "input"}
                     rows={field === "address" ? 3 : undefined}
@@ -255,20 +325,15 @@ const Checkout = () => {
                     value={user[field] || ""}
                     onChange={(e) => {
                       let value = e.target.value;
-
                       if (field === "phone") {
-                        // Remove non-digits and limit to 10 characters
                         value = value.replace(/\D/g, "").slice(0, 10);
                       }
-
-                      // Update the user state with the new value
                       update({ target: { name: field, value } });
                     }}
                     placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
                   />
                 </Form.Group>
               ))}
-
               <Form.Control
                 type="email"
                 name="email"
@@ -276,49 +341,52 @@ const Checkout = () => {
                 hidden
                 onChange={update}
               />
-
-              <Button variant="dark" type="submit" className="mt-2 w-100">
+              <Button
+                variant="dark"
+                type="submit"
+                className="w-100 rounded-pill mt-2"
+              >
                 Save Changes
               </Button>
             </Form>
           </Modal.Body>
         </Modal>
 
-        <div className="card-body">
+        <Card.Body className="px-4 py-3">
           {user?.name ? (
-            <ul className="list-unstyled mb-0">
-              <li>
-                <strong>Name:</strong> {user.name || "Not provided"}
-              </li>
-              <li>
-                <strong>Phone:</strong> {user.phone || "Not provided"}
-              </li>
-              <li>
-                <strong>Email:</strong> {user.email || "Not provided"}
-              </li>
-              <li>
+            <ListGroup variant="flush">
+              <ListGroup.Item className="border-0 px-0 py-1">
+                <strong>Name:</strong> {user.name}
+              </ListGroup.Item>
+              <ListGroup.Item className="border-0 px-0 py-1">
+                <strong>Phone:</strong> {user.phone}
+              </ListGroup.Item>
+              <ListGroup.Item className="border-0 px-0 py-1">
+                <strong>Email:</strong> {user.email}
+              </ListGroup.Item>
+              <ListGroup.Item className="border-0 px-0 py-1">
                 <strong>Address:</strong> {formatAddress(user)}
-              </li>
-            </ul>
+              </ListGroup.Item>
+            </ListGroup>
           ) : (
             <p className="text-muted">Fetching billing details...</p>
           )}
-        </div>
-      </div>
+        </Card.Body>
+      </Card>
 
       {/* Cart Items */}
-      <div className="card mb-4 shadow-sm">
-        <div className="card-body">
-          <h5 className="card-title mb-3">Your Cart Items</h5>
+      <Card className="mb-4 shadow-lg border-0 rounded-4">
+        <Card.Body className="px-4 py-3">
+          <Card.Title className="mb-4 fw-semibold">Your Cart Items</Card.Title>
           {cartItems.length === 0 ? (
             <p className="text-muted">No items in your cart.</p>
           ) : (
             <div style={{ maxHeight: "250px", overflowY: "auto" }}>
-              <ul className="list-group list-group-flush mb-3">
+              <ListGroup variant="flush">
                 {cartItems.map((item) => (
-                  <li
+                  <ListGroup.Item
                     key={item._id}
-                    className="list-group-item d-flex align-items-center"
+                    className="border-0 px-0 d-flex align-items-center"
                   >
                     <img
                       src={item.image}
@@ -336,70 +404,63 @@ const Checkout = () => {
                         Qty: {item.quantity} × ₹{item.price}
                       </div>
                     </div>
-                    <strong className="ms-2">
-                      ₹{item.price * item.quantity}
-                    </strong>
-                  </li>
+                    <strong>₹{item.price * item.quantity}</strong>
+                  </ListGroup.Item>
                 ))}
-              </ul>
+              </ListGroup>
             </div>
           )}
-          <div className="d-flex justify-content-between align-items-center mt-2">
-            <p className="fw-bold mb-0 fs-5">Total: ₹{totalAmount}</p>
-            <button className="btn btn-sm btn-success" onClick={handlePay}>
+          <div className="d-flex justify-content-between align-items-center mt-3">
+            <p className="fw-bold fs-5 mb-0">Total: ₹{totalAmount}</p>
+            <Button variant="success" size="sm" onClick={handlePay}>
               Proceed to Pay
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
+        </Card.Body>
+      </Card>
 
       {/* Payment Method */}
-      <div className="card shadow-sm">
-        <div className="card-body">
-          <h5 className="card-title mb-3">Payment Method</h5>
-          <div className="form-check mb-2">
-            <input
-              className="form-check-input"
-              type="radio"
-              name="payment"
-              value="cod"
-              checked={paymentMethod === "cod"}
-              onChange={handlePaymentChange}
-              id="cod"
-            />
-            <label className="form-check-label" htmlFor="cod">
-              Cash on Delivery
-            </label>
-          </div>
-          <div className="form-check">
-            <input
-              className="form-check-input"
-              type="radio"
-              name="payment"
-              value="card"
-              disabled
-              checked={paymentMethod === "card"}
-              onChange={handlePaymentChange}
-              id="card"
-            />
-            <label className="form-check-label" htmlFor="card">
-              Credit Card Payment
-            </label>
-          </div>
-        </div>
-      </div>
+      <Card className="mb-4 shadow-lg border-0 rounded-4">
+        <Card.Body className="px-4 py-3">
+          <Card.Title className="mb-3 fw-semibold">Payment Method</Card.Title>
+          <Form.Check
+            type="radio"
+            name="payment"
+            value="cod"
+            id="cod"
+            label="Cash on Delivery"
+            checked={paymentMethod === "cod"}
+            onChange={handlePaymentChange}
+            className="mb-2"
+          />
+          <Form.Check
+            type="radio"
+            name="payment"
+            value="card"
+            id="card"
+            label="Credit Card Payment"
+            checked={paymentMethod === "card"}
+            onChange={handlePaymentChange}
+          />
+        </Card.Body>
+      </Card>
 
       {/* Order History */}
-      <div className="card shadow-sm mt-4">
-        <div className="card-body">
-          <h5 className="card-title mb-3">Your Order History</h5>
+      <Card className="shadow-lg border-0 rounded-4">
+        <Card.Body className="px-4 py-3">
+          <Card.Title className="mb-3 fw-semibold">
+            Your Order History
+          </Card.Title>
           {orderHistory.length === 0 ? (
             <p className="text-muted">No previous orders found.</p>
           ) : (
             <div style={{ maxHeight: "250px", overflowY: "auto" }}>
-              <ul className="list-group list-group-flush">
+              <ListGroup variant="flush">
                 {orderHistory.map((order) => (
-                  <li key={order._id} className="list-group-item">
+                  <ListGroup.Item
+                    key={order._id}
+                    className="border-0 mb-3 px-0"
+                  >
                     <div className="fw-bold mb-1">
                       Order ID: <span className="text-muted">{order._id}</span>
                     </div>
@@ -409,52 +470,42 @@ const Checkout = () => {
                     </div>
                     <div className="small text-muted">
                       <strong>Payment:</strong>{" "}
-                      {order.paymentMethod
-                        ? order.paymentMethod.toUpperCase()
-                        : "N/A"}
+                      {order.paymentMethod?.toUpperCase() || "N/A"}
                     </div>
                     <div className="small text-muted mb-2">
                       <strong>Status:</strong> {order.status || "Processing"}
                     </div>
 
-                    {/* Product Items with Images */}
-                    <div className="mb-2">
-                      {order.items &&
-                        order.items.map((item, idx) => (
+                    {order.items?.map((item, idx) => (
+                      <div key={idx} className="d-flex align-items-center mb-2">
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="rounded me-2"
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              objectFit: "cover",
+                            }}
+                          />
+                        ) : (
                           <div
-                            key={idx}
-                            className="d-flex align-items-center mb-2"
-                          >
-                            {item.image ? (
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                style={{
-                                  width: "40px",
-                                  height: "40px",
-                                  objectFit: "cover",
-                                  marginRight: "10px",
-                                  borderRadius: "5px",
-                                }}
-                              />
-                            ) : (
-                              <div
-                                className="bg-secondary"
-                                style={{
-                                  width: "40px",
-                                  height: "40px",
-                                  marginRight: "10px",
-                                  borderRadius: "5px",
-                                }}
-                              ></div>
-                            )}
-                            <div className="small flex-grow-1">
-                              {item.name} × {item.quantity} – ₹
-                              {item.price * item.quantity}
-                            </div>
-                          </div>
-                        ))}
-                    </div>
+                            className="bg-secondary me-2"
+                            style={{
+                              width: "40px",
+                              height: "40px",
+                              borderRadius: "5px",
+                            }}
+                          />
+                        )}
+                        <div className="small flex-grow-1">
+                          {item.name} × {item.quantity} – ₹
+                          {item.price * item.quantity}
+                        </div>
+                      </div>
+                    ))}
+
                     <div className="small text-muted">
                       <strong>Address:</strong>{" "}
                       {order.address || "No address available"}
@@ -462,14 +513,14 @@ const Checkout = () => {
                     <div className="fw-semibold">
                       Total: ₹{order.totalAmount}
                     </div>
-                  </li>
+                  </ListGroup.Item>
                 ))}
-              </ul>
+              </ListGroup>
             </div>
           )}
-        </div>
-      </div>
-    </div>
+        </Card.Body>
+      </Card>
+    </Container>
   );
 };
 

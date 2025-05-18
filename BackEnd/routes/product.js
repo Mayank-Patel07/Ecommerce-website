@@ -50,12 +50,44 @@ router.post(
 );
 
 // Route 2 Get all products using GET . /api/product/allproducts No login required ...
+// router.get("/allproducts", async (req, res) => {
+//   try {
+//     // Fetch all products from the database
+//     const products = await Product.find();
+//     // If the products are fetched successfully, send a response with the product data
+//     res.status(200).json(products);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send("Internal Server Error");
+//   }
+// });
+
+// Route: /api/product/allproducts?page=1&limit=6
 router.get("/allproducts", async (req, res) => {
   try {
-    // Fetch all products from the database
-    const products = await Product.find();
-    // If the products are fetched successfully, send a response with the product data
-    res.status(200).json(products);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const searchTerm = req.query.search || "";
+
+    const searchQuery = {
+      $or: [
+        { name: { $regex: searchTerm, $options: "i" } },
+        { brand: { $regex: searchTerm, $options: "i" } },
+        { category: { $regex: searchTerm, $options: "i" } },
+      ],
+    };
+
+    const products = await Product.find(searchQuery).skip(skip).limit(limit);
+
+    const total = await Product.countDocuments(searchQuery);
+
+    res.status(200).json({
+      products,
+      total,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).send("Internal Server Error");

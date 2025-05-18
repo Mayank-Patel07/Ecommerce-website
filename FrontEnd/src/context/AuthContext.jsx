@@ -4,6 +4,7 @@ import axios from "axios";
 export const AuthContext = createContext();
 
 // Helper to handle both Base64 and URL images
+// Processes the image field in userData, converting paths or Base64 strings into valid formats for display.
 const processUserImage = (userData) => {
   if (!userData || !userData.image) return userData;
 
@@ -62,7 +63,12 @@ export const AuthProvider = ({ children }) => {
             headers: { "auth-token": token },
           }
         );
+        // Process the user image to ensure it's in the correct format
+        // This function checks if the image is a URL or Base64 string
+        // and processes it accordingly
         const processedUser = processUserImage(data);
+        // Set the user state with the processed user data
+        // This function will be used to update user data
         setUser(processedUser);
       } catch (err) {
         if (
@@ -97,24 +103,28 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Merges updated user data into the current user state.
   // Function to update user data
   // This function will be used to update user data
   const updateUserData = (updatedData) => {
     setUser((prev) => {
-      
+      // Check if the updatedData is an object
+      // If not, return the previous state
       const updated = { ...prev, ...updatedData };
       return updated;
     });
   };
 
-  
+  // Converts an image file into a Base64 data URL and sets a preview in the user state.
+  // Function to update user image
+  // This function will be used to update user image
   const updateUserImage = async (imageFile) => {
     try {
       const reader = new FileReader();
       return new Promise((resolve, reject) => {
         reader.onload = () => {
           const base64Image = reader.result;
-          
+
           // Update user state with preview
           setUser((prev) => ({
             ...prev,
@@ -132,11 +142,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Function to save user image
+  // This function will be used to save user image
   const saveUserImage = async (userId, imageData) => {
     try {
       // Ensure base64 data has correct prefix
-      const base64Data = imageData.startsWith('data:image')
-        ? imageData.split('base64,')[1]
+      const base64Data = imageData.startsWith("data:image")
+        ? imageData.split("base64,")[1]
         : imageData;
 
       const response = await axios.post(
@@ -166,6 +178,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
+    // Provide the context to children components
+    // This allows any child component to access the auth context
     <AuthContext.Provider
       value={{
         user,
