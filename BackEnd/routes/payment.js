@@ -13,8 +13,8 @@ dotenv.config({
 // The Razorpay instance is created using the key_id and key_secret from the environment variables
 // The key_id and key_secret are used to authenticate requests to the Razorpay API
 const instance = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
+  key_id: process.env.Test_Key_ID,
+  key_secret: process.env.Test_Key_Secret,
 });
 
 // POST /api/payment/razorpay - Create a new Razorpay order
@@ -54,7 +54,7 @@ router.post("/verify", async (req, res) => {
   // The update function updates the hash with the specified data
   // The digest function calculates the final hash and returns it in the specified encoding (hex)
   const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+    .createHmac("sha256", process.env.Test_Key_Secret)
     .update(body)
     .digest("hex");
 

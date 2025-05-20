@@ -23,9 +23,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ThankYou from "./Product/Thankyou";
 import { AuthProvider } from "./context/AuthContext";
+import OrderHistory from "./Product/Order_history";
 
 export default function App() {
-  
   // State is used to hold the data
   // Toggle the display button (Login , Register)
   const [Dis_data, setDis_Data] = useState({
@@ -36,7 +36,6 @@ export default function App() {
 
   // useEffect is used to check if the user is logged in or not
   useEffect(() => {
-
     // Check if the token is present in local storage
     const token = localStorage.getItem("TOKEN");
 
@@ -51,7 +50,6 @@ export default function App() {
       // Fetch user data from the server
       const fetchUserData = async () => {
         try {
-
           // Make a GET request to the server to fetch user details
           // Setting the headers
 
@@ -60,14 +58,12 @@ export default function App() {
               "auth-token": token,
             },
           });
-
         } catch (error) {
           console.error("Error fetching user data:", error);
         }
       };
       fetchUserData();
     } else {
-
       // If the token is not present, set the display data to show login and register buttons
       setDis_Data({
         logout: "none",
@@ -79,7 +75,7 @@ export default function App() {
 
   return (
     <>
-      <AuthProvider> 
+      <AuthProvider>
         <CartProvider>
           <BrowserRouter>
             <Navbar Dis_data={Dis_data} setDis_Data={setDis_Data} />
@@ -104,6 +100,8 @@ export default function App() {
               <Route path="/item/:id" element={<Selected_product />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/orderhistory" element={<OrderHistory />} />
+
               <Route path="/uploads" element={<Uploads />} />
               <Route path="/CheckOut" element={<CheckOut />} />
               <Route path="*" element={<h1>404 Not Found</h1>} />

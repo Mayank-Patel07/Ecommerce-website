@@ -1,0 +1,30 @@
+/* Disable hover/focus effects inside order boxes */
+.order-box,
+.order-box * {
+  transition: none !important;
+  pointer-events: none;
+}
+
+input[type="date"],
+button {
+  pointer-events: auto;
+}
+
+.no-hover:hover,
+.card:hover,
+.list-group-item:hover,
+.table-hover tbody tr:hover {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* More prominent box shadows for carts */
+.enhanced-shadow {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Styling for the date range filter box */
+.filter-section {
+  background: #f8f9fa;
+  border-left: 5px solid #0d6efd;
+}

@@ -3,12 +3,17 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { AuthContext } from "../context/AuthContext";
+import ForgotPasswordModal from "./ForgotPasswordModal";
+import { Button } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function Login() {
   //  get login method from context
   //  use context to get the login method
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const [showForgot, setShowForgot] = useState(false);
 
   const color_all = "#dfc18f";
 
@@ -159,6 +164,29 @@ export default function Login() {
             >
               Login
             </button>
+            <div>
+
+            <Button
+              variant="link"
+              onClick={() => setShowForgot(true)}
+              style={{
+                padding: 0,
+                fontSize: "0.9rem",
+                color: "#0d6efd", // Bootstrap primary color
+                textDecoration: "underline",
+                fontWeight: "500",
+                marginTop: "10px",
+                marginLeft: "10px",
+              }}
+              >
+              Forgot Password?
+            </Button>
+              </div>
+
+            <ForgotPasswordModal
+              show={showForgot}
+              handleClose={() => setShowForgot(false)}
+            />
 
             <div className="container">
               <div className="mb-2">

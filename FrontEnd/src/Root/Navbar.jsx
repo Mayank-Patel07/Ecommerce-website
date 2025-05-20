@@ -37,6 +37,7 @@ export default function Navbar({ Dis_data, setDis_Data }) {
     { path: "/kids", label: "Kids Wear" },
     { path: "/womens", label: "Women's Wear" },
     { path: "/cart", label: "🛒 Cart" },
+    { path: "/orderhistory", label: "Order History" },
     { path: "/uploads", label: "Admin Panel" },
   ];
 

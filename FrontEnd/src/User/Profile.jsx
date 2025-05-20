@@ -10,11 +10,9 @@ import { AuthContext } from "../context/AuthContext";
 export default function Profile() {
   // Use AuthContext
   const { user, token, updateUserData, updateUserImage, saveUserImage } = useContext(AuthContext);
-
   // State for modal and loading
   const [loading, setLoading] = useState(true);
   const [show, setShow] = useState(false);
-
   // State to manage form data (allows editing without immediately changing context)
   const [formData, setFormData] = useState({
     name: "",
@@ -26,7 +24,6 @@ export default function Profile() {
     pincode: "",
     address: "",
   });
-
   // State to track image changes
   const [imageChanged, setImageChanged] = useState(false);
 
@@ -60,16 +57,11 @@ export default function Profile() {
     // Special handling for phone number
     if (name === "phone") {
       // Allow only digits and limit to 10 characters
-      // This regex replaces all non-digit characters with an empty string
       const digitsOnly = value.replace(/\D/g, "");
       if (digitsOnly.length <= 10) {
-        // Update form data with digits only
         setFormData(prev => ({ ...prev, [name]: digitsOnly }));
       }
     } else {
-      // Update form data for other fields
-      // This will update the form data with the new value
-      // The spread operator is used to copy the existing form data
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
@@ -79,7 +71,6 @@ export default function Profile() {
     try {
       // Update user data in context and backend
       updateUserData(formData);
-
       // Make API call to update user data
       await axios.put(`http://127.0.0.1:5000/api/user/${id}`, formData, {
         headers: {
@@ -87,7 +78,6 @@ export default function Profile() {
           "Content-Type": "application/json",
         },
       });
-
       toast.success("Profile updated successfully!");
       
       // Close modal
@@ -133,7 +123,6 @@ export default function Profile() {
         toast.error("User information not available");
         return;
       }
-
       // Save image using context method
       await saveUserImage(user._id, user.previewImage);
       
@@ -145,13 +134,196 @@ export default function Profile() {
     }
   };
 
+  // CSS Styles
+  const styles = {
+    container: {
+      padding: "32px 24px",
+      maxWidth: "1200px",
+      margin: "0 auto",
+    },
+    alertHeader: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      backgroundColor: "#fff3cd",
+      border: "1px solid #ffeeba",
+      borderRadius: "8px",
+      padding: "16px 20px",
+      marginBottom: "24px",
+      boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+    },
+    headerText: {
+      display: "flex",
+      alignItems: "center",
+      fontSize: "18px",
+      fontWeight: "600",
+      color: "#856404",
+    },
+    icon: {
+      fontSize: "23px",
+      marginRight: "10px",
+    },
+    updateButton: {
+      backgroundColor: "#41756f",
+      border: "none",
+      color: "white",
+      padding: "8px 16px",
+      borderRadius: "6px",
+      fontSize: "14px",
+      fontWeight: "500",
+    },
+    modalHeader: {
+      backgroundColor: "#294948", 
+      color: "white",
+      padding: "16px 20px",
+      borderBottom: "1px solid #233e3d",
+    },
+    modalBody: {
+      backgroundColor: "#f8f9fa",
+      padding: "20px",
+    },
+    formControl: {
+      padding: "10px 12px",
+      borderRadius: "6px",
+      border: "1px solid #ced4da",
+      marginBottom: "12px",
+      width: "100%",
+      fontSize: "15px",
+    },
+    saveButton: {
+      backgroundColor: "#2c3e50",
+      border: "none",
+      width: "100%",
+      padding: "10px 0",
+      marginTop: "12px",
+      borderRadius: "6px",
+      fontWeight: "500",
+    },
+    profileRow: {
+      display: "flex",
+      flexWrap: "wrap",
+      marginLeft: "-16px",
+      marginRight: "-16px",
+    },
+    profileImageCol: {
+      width: "100%",
+      padding: "0 16px",
+      marginBottom: "24px",
+      textAlign: "center",
+    },
+    profileDetailsCol: {
+      width: "100%",
+      padding: "0 16px",
+    },
+    imageContainer: {
+      display: "inline-block",
+      position: "relative",
+      border: "1px solid #dee2e6",
+      borderRadius: "50%",
+      overflow: "hidden",
+      padding: "8px",
+      background: "white",
+      width: "220px",
+      height: "220px",
+      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    },
+    profileImg: {
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      borderRadius: "50%",
+    },
+    editImageButton: {
+      position: "absolute",
+      bottom: "10px",
+      right: "40px",
+      background: "white",
+      border: "1px solid #dee2e6",
+      borderRadius: "50%",
+      padding: "6px 8px",
+      boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+    },
+    saveImageButton: {
+      backgroundColor: "#28a745",
+      border: "none",
+      color: "white",
+      padding: "8px 16px",
+      borderRadius: "6px",
+      marginTop: "16px",
+      fontSize: "14px",
+      fontWeight: "500",
+      display: "block",
+      margin: "16px auto 0",
+    },
+    detailsCard: {
+      border: "none",
+      borderRadius: "12px",
+      backgroundColor: "#f8f9fa",
+      boxShadow: "0 3px 10px rgba(0,0,0,0.08)",
+    },
+    cardBody: {
+      padding: "24px",
+    },
+    cardTitle: {
+      marginBottom: "20px",
+      paddingBottom: "12px",
+      borderBottom: "1px solid #dee2e6",
+      fontSize: "20px",
+      fontWeight: "600",
+      color: "#333",
+    },
+    detailRow: {
+      display: "flex",
+      flexWrap: "wrap",
+      marginBottom: "8px",
+    },
+    detailLabel: {
+      width: "30%",
+      fontWeight: "600",
+      color: "#495057",
+      paddingRight: "12px",
+    },
+    detailValue: {
+      width: "70%",
+      color: "#212529",
+    },
+    accessDeniedAlert: {
+      textAlign: "center",
+      marginTop: "40px",
+      padding: "20px",
+      maxWidth: "500px",
+      marginLeft: "auto",
+      marginRight: "auto",
+      backgroundColor: "#f8d7da",
+      color: "#721c24",
+      borderRadius: "10px", 
+      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    },
+    loadingContainer: {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: "300px",
+    }
+  };
+
+  // Media queries equivalent in inline styles using JavaScript
+  if (window.innerWidth >= 768) {
+    styles.profileImageCol = {
+      ...styles.profileImageCol,
+      width: "33.333%",
+      marginBottom: "0",
+    };
+    styles.profileDetailsCol = {
+      ...styles.profileDetailsCol,
+      width: "66.667%",
+    };
+  }
+
   // Render loading state
   if (loading) {
     return (
-      <div
-        className="d-flex justify-content-center align-items-center"
-        style={{ minHeight: "300px" }}
-      >
+      <div style={styles.loadingContainer}>
         <Spiral size="40" speed="0.9" color="black" />
       </div>
     );
@@ -161,51 +333,41 @@ export default function Profile() {
   return (
     <>
       {user ? (
-        <div className="container py-4">
-          <div className="d-flex justify-content-between align-items-center alert alert-warning fs-5 fw-semibold">
-            <div className="d-flex align-items-center">
-              <i
-                className="bi bi-person-circle me-2"
-                style={{ fontSize: "23px" }}
-              ></i>
+        <div style={styles.container}>
+          <div style={styles.alertHeader}>
+            <div style={styles.headerText}>
+              <i className="bi bi-person-circle" style={styles.icon}></i>
               <span>Your Details</span>
             </div>
             <button
               type="button"
-              className="btn btn-sm btn-dark"
               onClick={handleShow}
-              style={{
-                background:
-                  "linear-gradient(90deg, rgba(65,117,111,1) 26%, rgba(15,27,29,1) 100%)",
-                color: "white",
-              }}
+              style={styles.updateButton}
             >
               Update Profile
             </button>
           </div>
-
+          
           {/* Modal for updating profile */}
           <Modal show={show} onHide={handleClose} centered>
-            <Modal.Header
-              closeButton
-              style={{ backgroundColor: "#294948", color: "white" }}
-            >
+            <Modal.Header closeButton style={styles.modalHeader}>
               <Modal.Title>Billing Details</Modal.Title>
             </Modal.Header>
-            <Modal.Body style={{ backgroundColor: "#dfc18f" }}>
+            <Modal.Body style={styles.modalBody}>
               <Form
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleUpdate(user._id);
                 }}
               >
-                <Form.Group className="mb-2">
+                <Form.Group>
                   <Form.Control
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={update}
                     placeholder="Name"
+                    style={styles.formControl}
                   />
                 </Form.Group>
                 <Form.Control
@@ -215,52 +377,57 @@ export default function Profile() {
                   hidden
                   onChange={update}
                 />
-                <Form.Group className="mb-2">
+                <Form.Group>
                   <Form.Control
                     type="text"
                     name="phone"
                     value={formData.phone}
                     onChange={update}
                     placeholder="Phone"
+                    style={styles.formControl}
                   />
                 </Form.Group>
-                <Form.Group className="mb-2">
+                <Form.Group>
                   <Form.Control
                     type="text"
                     name="city"
                     value={formData.city}
                     onChange={update}
                     placeholder="City"
+                    style={styles.formControl}
                   />
                 </Form.Group>
-                <Form.Group className="mb-2">
+                <Form.Group>
                   <Form.Control
                     type="text"
                     name="state"
                     value={formData.state}
                     onChange={update}
                     placeholder="State"
+                    style={styles.formControl}
                   />
                 </Form.Group>
-                <Form.Group className="mb-2">
+                <Form.Group>
                   <Form.Control
                     type="text"
                     name="district"
                     value={formData.district}
                     onChange={update}
                     placeholder="District"
+                    style={styles.formControl}
                   />
                 </Form.Group>
-                <Form.Group className="mb-2">
+                <Form.Group>
                   <Form.Control
                     type="number"
                     name="pincode"
                     value={formData.pincode}
                     onChange={update}
                     placeholder="Pincode"
+                    style={styles.formControl}
                   />
                 </Form.Group>
-                <Form.Group className="mb-2">
+                <Form.Group>
                   <Form.Control
                     as="textarea"
                     rows={3}
@@ -268,82 +435,87 @@ export default function Profile() {
                     value={formData.address}
                     onChange={update}
                     placeholder="Address"
+                    style={{...styles.formControl, resize: "vertical"}}
                   />
                 </Form.Group>
-                <Button variant="dark" type="submit" className="mt-2 w-100">
+                <Button variant="dark" type="submit" style={styles.saveButton}>
                   Save Changes
                 </Button>
               </Form>
             </Modal.Body>
           </Modal>
-
-          {/* Profile Image Section */}
-          <div className="row g-4 align-items-start">
-            <div className="col-md-4 text-center">
-              <div
-                className="position-relative d-inline-block border rounded-circle overflow-hidden shadow-lg bg-white p-2"
-                style={{ width: "220px", height: "220px" }}
-              >
+          
+          {/* Profile Image and Details Sections */}
+          <div style={styles.profileRow}>
+            {/* Profile Image Section */}
+            <div style={styles.profileImageCol}>
+              <div style={styles.imageContainer}>
                 <img
                   src={user.previewImage || user.image || sampleImage}
                   alt="Profile Preview"
-                  className="img-fluid rounded-circle w-100 h-100 object-fit-cover"
+                  style={styles.profileImg}
                 />
                 <input
                   type="file"
                   accept="image/*"
                   id="profileImageUpload"
-                  className="d-none"
+                  style={{display: "none"}}
                   onChange={updateImage}
                 />
                 <label
                   htmlFor="profileImageUpload"
-                  className="position-absolute btn btn-light btn-sm rounded-circle"
-                  style={{
-                    cursor: "pointer",
-                    bottom: "10px",
-                    right: "10px",
-                    marginRight: "30px",
-                    zIndex: 2,
-                    boxShadow: "0 0 8px rgba(0, 0, 0, 0.2)",
-                  }}
+                  style={styles.editImageButton}
                 >
                   <i className="bi bi-pencil-square"></i>
                 </label>
               </div>
               {imageChanged && (
                 <button
-                  className="btn btn-success btn-sm mt-3 mx-auto d-block shadow-sm"
+                  style={styles.saveImageButton}
                   onClick={handleImageSave}
                 >
                   Save Image
                 </button>
               )}
             </div>
-
+            
             {/* Profile Details Section */}
-            <div className="col-md-8">
-              <div className="card border-0 shadow-sm rounded-4 bg-light">
-                <div className="card-body p-4">
-                  <h4 className="card-title mb-4 border-bottom pb-2">
+            <div style={styles.profileDetailsCol}>
+              <div style={styles.detailsCard}>
+                <div style={styles.cardBody}>
+                  <h4 style={styles.cardTitle}>
                     Your Details
                   </h4>
-                  <dl className="row mb-0">
-                    <dt className="col-sm-3">Name:</dt>
-                    <dd className="col-sm-9">{user.name}</dd>
-                    <dt className="col-sm-3">Email:</dt>
-                    <dd className="col-sm-9">{user.email}</dd>
-                    <dt className="col-sm-3">Mobile Number:</dt>
-                    <dd className="col-sm-9">{user.phone}</dd>
-                    <dt className="col-sm-3">City:</dt>
-                    <dd className="col-sm-9">{user.city}</dd>
-                    <dt className="col-sm-3">State:</dt>
-                    <dd className="col-sm-9">{user.state}</dd>
-                    <dt className="col-sm-3">Pincode:</dt>
-                    <dd className="col-sm-9">{user.pincode}</dd>
-                    <dt className="col-sm-3">Address:</dt>
-                    <dd className="col-sm-9">{user.address}</dd>
-                  </dl>
+                  <div>
+                    <div style={styles.detailRow}>
+                      <div style={styles.detailLabel}>Name:</div>
+                      <div style={styles.detailValue}>{user.name}</div>
+                    </div>
+                    <div style={styles.detailRow}>
+                      <div style={styles.detailLabel}>Email:</div>
+                      <div style={styles.detailValue}>{user.email}</div>
+                    </div>
+                    <div style={styles.detailRow}>
+                      <div style={styles.detailLabel}>Mobile Number:</div>
+                      <div style={styles.detailValue}>{user.phone}</div>
+                    </div>
+                    <div style={styles.detailRow}>
+                      <div style={styles.detailLabel}>City:</div>
+                      <div style={styles.detailValue}>{user.city}</div>
+                    </div>
+                    <div style={styles.detailRow}>
+                      <div style={styles.detailLabel}>State:</div>
+                      <div style={styles.detailValue}>{user.state}</div>
+                    </div>
+                    <div style={styles.detailRow}>
+                      <div style={styles.detailLabel}>Pincode:</div>
+                      <div style={styles.detailValue}>{user.pincode}</div>
+                    </div>
+                    <div style={styles.detailRow}>
+                      <div style={styles.detailLabel}>Address:</div>
+                      <div style={styles.detailValue}>{user.address}</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -351,16 +523,19 @@ export default function Profile() {
         </div>
       ) : (
         <div
-          className="text-center mt-5 fw-semibold fs-4 alert alert-danger shadow-lg mx-auto"
-          style={{
-            maxWidth: "500px",
-            borderRadius: "1rem",
-            animation: "fadeIn 1s ease-in-out",
-          }}
-        >
-          <span style={{ color: "#8B0000" }}>Access Denied:</span> Please{" "}
-          <strong>Login First</strong>
-        </div>
+        className="text-center mt-4 fw-semibold fs-5 alert alert-danger shadow mx-auto border-start border-danger border-4"
+        style={{
+          maxWidth: "450px",
+          borderRadius: "0.75rem",
+          animation: "fadeIn 1s ease-in-out",
+          background: "linear-gradient(to right, #fff5f5, #fff)",
+        }}
+      >
+        <span style={{ color: "#8B0000" }}>
+          <i className="bi bi-exclamation-triangle-fill me-2"></i>Access Denied:
+        </span>{" "}
+        Please <strong>Login First.</strong>
+      </div>
       )}
     </>
   );

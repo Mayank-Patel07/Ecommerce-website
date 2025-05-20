@@ -13,51 +13,30 @@ import {
   Modal,
   Form,
 } from "react-bootstrap";
+
 const Checkout = () => {
   // Context
-  // Importing the CartContext to manage cart items and actions
-  // This allows us to access the cart items and functions like clearCart
   const { cartItems, clearCart } = useCart();
 
   // State variables
   const [paymentMethod, setPaymentMethod] = useState("cod");
-
-  // State to manage user details and order history
-  // This includes user information and their past orders
-  // State to manage order history
   const [user, setUser] = useState({});
   const [orderHistory, setOrderHistory] = useState([]);
-
-  // State to manage the modal visibility for editing user details
-  // This modal allows users to update their address and other details
   const [show, setShow] = useState(false);
   const navigate = useNavigate();
 
-  // Function to handle the modal close and show actions
-  // This is used to toggle the visibility of the modal when the user clicks the edit button
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  // Calculate the total amount based on cart items
-  // This uses the reduce function to sum up the price of each item multiplied by its quantity
-  // This is used to display the total amount before payment
-  // This is done by iterating over the cart items and summing up the total price
   const totalAmount = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
 
-  // Fetch user details and order history when the component mounts
-  // This uses the useEffect hook to make an API call to fetch user details and order history
-  // The API call is made using axios, and the response is stored in the state variables
-  // This is done to display the user's details and their past orders in the checkout page
   useEffect(() => {
-    // Check if the user is logged in by checking for a token in local storage
     const token = localStorage.getItem("TOKEN");
-    // If no token is found, return early to avoid making unnecessary API calls
     if (!token) return;
 
-    // Fetch user details from the API
     const fetchUserAndOrders = async () => {
       try {
         const userRes = await axios.get(
@@ -66,14 +45,8 @@ const Checkout = () => {
             headers: { "auth-token": token },
           }
         );
-        // Process the user data to include the image URL
-        // This is done to ensure the image URL is correctly formatted for display
-
         setUser(userRes.data);
 
-        // Fetch user order history from the API
-        // This includes the user's address, phone number, and email
-        // This is done to display the user's details in the checkout page
         const ordersRes = await axios.get(
           "http://127.0.0.1:5000/api/order/history",
           {
@@ -85,15 +58,10 @@ const Checkout = () => {
         toast.error("Failed to fetch user or order details");
       }
     };
-
     fetchUserAndOrders();
   }, []);
 
-  // Function to handle the update of user details
-  // This is called when the user submits the form in the modal
-  // This function sends a PUT request to the API to update the user's details
   const handleUpdate = async (id) => {
-    // Check if the user object is empty or not
     const token = localStorage.getItem("TOKEN");
     try {
       await axios.put(`http://127.0.0.1:5000/api/user/${id}`, user, {
@@ -102,42 +70,27 @@ const Checkout = () => {
           "Content-Type": "application/json",
         },
       });
-
-      // Show success message using toast
-      // This is done to inform the user that their details have been updated successfully
       toast.success("Profile updated successfully!");
 
-      // Fetch the updated user details from the API
-      // This is done to ensure the user details are up-to-date after the update
       const { data } = await axios.get(
         "http://127.0.0.1:5000/api/user/details",
         {
           headers: { "auth-token": token },
         }
       );
-      // Update the user state with the new details
       setUser(data);
-      // Close the modal after successful update
       handleClose();
     } catch (error) {
       toast.error("Failed to update profile details. Token is not valid.");
     }
   };
 
-  // Function to handle the payment process
-  // This is called when the user clicks the "Proceed to Pay" button
-  // This function sends a POST request to the API to create an order
-  // This includes the cart items, payment method, total amount, and user address
-  // This is done to place the order and redirect the user to the thank you page
-
   const handlePay = async () => {
     if (!cartItems.length) {
       toast.warn("Cart is empty!");
       return;
     }
-
     const token = localStorage.getItem("TOKEN");
-
     const fullAddress = `${user.address || ""}, ${user.city || ""}, ${
       user.district || ""
     }, ${user.state || ""} - ${user.pincode || ""}`;
@@ -173,17 +126,14 @@ const Checkout = () => {
             headers: { "auth-token": token },
           }
         );
-        console.log(data);
 
         const options = {
-          key: import.meta.env.VITE_API_RAZORPAY_KEY_ID,
+          key: import.meta.env.VITE_API_Test_Key_ID,
           amount: data.amount,
           currency: data.currency,
           order_id: data.id,
           name: "My E-commerce Site",
           description: "Test Transaction",
-
-          // Callback function to handle payment success
           handler: async function (response) {
             try {
               await axios.post(
@@ -210,9 +160,7 @@ const Checkout = () => {
               );
             }
           },
-
           prefill: {
-            // Prefill user details in the Razorpay payment form
             name: user.name,
             email: user.email,
             contact: user.phone,
@@ -222,8 +170,6 @@ const Checkout = () => {
           },
         };
 
-        // Load Razorpay script dynamically
-        //  This is done to ensure Razorpay script is loaded before using it
         const rzp = new window.Razorpay(options);
         rzp.open();
       } catch (err) {
@@ -232,68 +178,164 @@ const Checkout = () => {
     }
   };
 
-  // Function to update user details in the state
-  // This is called when the user types in the input fields in the modal
   const update = (e) => {
     const { name, value } = e.target;
     setUser((prevUser) => ({ ...prevUser, [name]: value }));
   };
 
-  // Function to handle the change of payment method
-  // This is called when the user selects a different payment method
-  // This function updates the paymentMethod state with the selected value
   const handlePaymentChange = (e) => {
     setPaymentMethod(e.target.value);
   };
 
-  // Safe function to display address with null checks
   const formatAddress = (user) => {
-    // Check if the user object is empty or not
     if (!user) return "No address information";
-
-    // Concatenate address parts with null checks
-    // This is done to ensure the address is correctly formatted for display
-    // Filter out null/undefined values
     const parts = [user.address, user.city, user.district, user.state].filter(
       Boolean
     );
-
-    // Join the address parts with a comma and space
-    // Return the formatted address or a default message if no parts are found
     return parts.length ? parts.join(", ") : "No address information";
-    // This is done to ensure the address is correctly formatted for display
+  };
+
+  // Custom styles for the component
+  const styles = {
+    pageContainer: {
+      padding: "30px 15px",
+      maxWidth: "1000px",
+      margin: "0 auto",
+    },
+    pageTitle: {
+      fontSize: "28px",
+      fontWeight: "700",
+      textAlign: "center",
+      marginBottom: "30px",
+      color: "#333",
+    },
+    card: {
+      border: "none",
+      borderRadius: "12px",
+      boxShadow: "0 6px 15px rgba(0, 0, 0, 0.1)",
+      marginBottom: "25px",
+      overflow: "hidden",
+    },
+    cardHeader: {
+      backgroundColor: "#2c3e50",
+      color: "white",
+      padding: "16px 20px",
+      borderRadius: "12px 12px 0 0",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    sectionTitle: {
+      fontSize: "18px",
+      fontWeight: "600",
+      margin: "0",
+    },
+    editButton: {
+      backgroundColor: "#41756f",
+      borderColor: "#41756f",
+      color: "white",
+      borderRadius: "6px",
+      fontSize: "14px",
+      padding: "6px 15px",
+    },
+    cardBody: {
+      padding: "20px",
+    },
+    listItem: {
+      padding: "8px 0",
+      borderBottom: "none",
+    },
+    itemImage: {
+      width: "60px",
+      height: "60px",
+      objectFit: "cover",
+      borderRadius: "8px",
+      marginRight: "15px",
+    },
+    itemName: {
+      fontSize: "16px",
+      fontWeight: "600",
+      color: "#333",
+    },
+    itemDetails: {
+      fontSize: "14px",
+      color: "#777",
+    },
+    totalAmount: {
+      fontSize: "18px",
+      fontWeight: "700",
+      color: "#2c3e50",
+      margin: "0",
+    },
+    payButton: {
+      backgroundColor: "#27ae60",
+      borderColor: "#27ae60",
+      color: "white",
+      borderRadius: "6px",
+      padding: "8px 20px",
+      fontSize: "15px",
+    },
+    modalHeader: {
+      backgroundColor: "#2c3e50",
+      color: "white",
+      borderBottom: "none",
+      padding: "16px 20px",
+    },
+    modalBody: {
+      backgroundColor: "#f8f9fa",
+      padding: "20px",
+    },
+    formLabel: {
+      fontWeight: "600",
+      color: "#444",
+      marginBottom: "6px",
+    },
+    formControl: {
+      padding: "10px 12px",
+      borderRadius: "8px",
+      border: "1px solid #ced4da",
+      fontSize: "15px",
+      marginBottom: "15px",
+    },
+    saveButton: {
+      backgroundColor: "#2c3e50",
+      borderColor: "#2c3e50",
+      width: "100%",
+      borderRadius: "8px",
+      padding: "10px",
+      marginTop: "10px",
+      fontSize: "16px",
+    },
+    radioLabel: {
+      fontSize: "16px",
+      fontWeight: "500",
+      marginLeft: "8px",
+    },
   };
 
   return (
-    <Container className="py-3">
-      <h1 className="text-center fw-bold  mb-3">🧾 Checkout</h1>
+    <Container style={styles.pageContainer}>
+      <h1 style={styles.pageTitle}>🧾 Checkout</h1>
 
       {/* Billing Address */}
-      <Card className="mb-3 shadow-lg border-0 rounded-4">
-        <Card.Header className="bg-dark text-white d-flex justify-content-between align-items-center rounded-top-4 px-4 py-3">
-          <h5 className="mb-0">Billing Address</h5>
+      <Card style={styles.card}>
+        <div style={styles.cardHeader}>
+          <h5 style={styles.sectionTitle}>Billing Address</h5>
           <Button
-            variant="dark"
+            variant="primary"
             size="sm"
             onClick={handleShow}
-            style={{
-              background:
-                "linear-gradient(90deg, rgba(65,117,111,1) 26%, rgba(15,27,29,1) 100%)",
-              color: "white",
-            }}
+            style={styles.editButton}
           >
             Edit Address
           </Button>
-        </Card.Header>
+        </div>
 
         <Modal show={show} onHide={handleClose} centered>
-          <Modal.Header
-            closeButton
-            style={{ backgroundColor: "#294948", color: "white" }}
-          >
+          <Modal.Header closeButton style={styles.modalHeader}>
             <Modal.Title>Your Details</Modal.Title>
           </Modal.Header>
-          <Modal.Body style={{ backgroundColor: "#dfc18f" }}>
+          <Modal.Body style={styles.modalBody}>
             <Form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -310,7 +352,10 @@ const Checkout = () => {
                 "address",
               ].map((field) => (
                 <Form.Group className="mb-3" key={field}>
-                  <Form.Label className="text-capitalize fw-semibold">
+                  <Form.Label
+                    style={styles.formLabel}
+                    className="text-capitalize"
+                  >
                     {field}
                   </Form.Label>
                   <Form.Control
@@ -331,6 +376,7 @@ const Checkout = () => {
                       update({ target: { name: field, value } });
                     }}
                     placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                    style={styles.formControl}
                   />
                 </Form.Group>
               ))}
@@ -341,78 +387,105 @@ const Checkout = () => {
                 hidden
                 onChange={update}
               />
-              <Button
-                variant="dark"
-                type="submit"
-                className="w-100 rounded-pill mt-2"
-              >
+              <Button variant="dark" type="submit" style={styles.saveButton}>
                 Save Changes
               </Button>
             </Form>
           </Modal.Body>
         </Modal>
 
-        <Card.Body className="px-4 py-3">
+        <Card.Body style={styles.cardBody}>
           {user?.name ? (
             <ListGroup variant="flush">
-              <ListGroup.Item className="border-0 px-0 py-1">
+              <ListGroup.Item style={styles.listItem}>
                 <strong>Name:</strong> {user.name}
               </ListGroup.Item>
-              <ListGroup.Item className="border-0 px-0 py-1">
+              <ListGroup.Item style={styles.listItem}>
                 <strong>Phone:</strong> {user.phone}
               </ListGroup.Item>
-              <ListGroup.Item className="border-0 px-0 py-1">
+              <ListGroup.Item style={styles.listItem}>
                 <strong>Email:</strong> {user.email}
               </ListGroup.Item>
-              <ListGroup.Item className="border-0 px-0 py-1">
+              <ListGroup.Item style={styles.listItem}>
                 <strong>Address:</strong> {formatAddress(user)}
               </ListGroup.Item>
             </ListGroup>
           ) : (
-            <p className="text-muted">Fetching billing details...</p>
+            <p style={{ color: "#777" }}>Fetching billing details...</p>
           )}
         </Card.Body>
       </Card>
 
       {/* Cart Items */}
-      <Card className="mb-4 shadow-lg border-0 rounded-4">
-        <Card.Body className="px-4 py-3">
-          <Card.Title className="mb-4 fw-semibold">Your Cart Items</Card.Title>
+      <Card style={styles.card}>
+        <Card.Body style={styles.cardBody}>
+          <Card.Title
+            style={{
+              fontSize: "18px",
+              fontWeight: "600",
+              marginBottom: "20px",
+            }}
+          >
+            Your Cart Items
+          </Card.Title>
+
           {cartItems.length === 0 ? (
-            <p className="text-muted">No items in your cart.</p>
+            <p style={{ color: "#777" }}>No items in your cart.</p>
           ) : (
-            <div style={{ maxHeight: "250px", overflowY: "auto" }}>
+            <div
+              style={{
+                maxHeight: "250px",
+                overflowY: "auto",
+                paddingRight: "5px",
+              }}
+            >
               <ListGroup variant="flush">
                 {cartItems.map((item) => (
                   <ListGroup.Item
                     key={item._id}
-                    className="border-0 px-0 d-flex align-items-center"
+                    style={{
+                      border: "none",
+                      padding: "10px 0",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
                   >
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="rounded me-3"
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        objectFit: "cover",
-                      }}
+                      style={styles.itemImage}
                     />
-                    <div className="flex-grow-1">
-                      <div className="fw-semibold">{item.name}</div>
-                      <div className="text-muted small">
+                    <div style={{ flexGrow: 1 }}>
+                      <div style={styles.itemName}>{item.name}</div>
+                      <div style={styles.itemDetails}>
                         Qty: {item.quantity} × ₹{item.price}
                       </div>
                     </div>
-                    <strong>₹{item.price * item.quantity}</strong>
+                    <strong style={{ fontSize: "16px" }}>
+                      ₹{item.price * item.quantity}
+                    </strong>
                   </ListGroup.Item>
                 ))}
               </ListGroup>
             </div>
           )}
-          <div className="d-flex justify-content-between align-items-center mt-3">
-            <p className="fw-bold fs-5 mb-0">Total: ₹{totalAmount}</p>
-            <Button variant="success" size="sm" onClick={handlePay}>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: "20px",
+              paddingTop: "15px",
+              borderTop: "1px solid #eee",
+            }}
+          >
+            <p style={styles.totalAmount}>Total: ₹{totalAmount}</p>
+            <Button
+              variant="success"
+              style={styles.payButton}
+              onClick={handlePay}
+            >
               Proceed to Pay
             </Button>
           </div>
@@ -420,106 +493,46 @@ const Checkout = () => {
       </Card>
 
       {/* Payment Method */}
-      <Card className="mb-4 shadow-lg border-0 rounded-4">
-        <Card.Body className="px-4 py-3">
-          <Card.Title className="mb-3 fw-semibold">Payment Method</Card.Title>
-          <Form.Check
-            type="radio"
-            name="payment"
-            value="cod"
-            id="cod"
-            label="Cash on Delivery"
-            checked={paymentMethod === "cod"}
-            onChange={handlePaymentChange}
-            className="mb-2"
-          />
-          <Form.Check
-            type="radio"
-            name="payment"
-            value="card"
-            id="card"
-            label="Credit Card Payment"
-            checked={paymentMethod === "card"}
-            onChange={handlePaymentChange}
-          />
-        </Card.Body>
-      </Card>
-
-      {/* Order History */}
-      <Card className="shadow-lg border-0 rounded-4">
-        <Card.Body className="px-4 py-3">
-          <Card.Title className="mb-3 fw-semibold">
-            Your Order History
+      <Card style={styles.card}>
+        <Card.Body style={styles.cardBody}>
+          <Card.Title
+            style={{
+              fontSize: "18px",
+              fontWeight: "600",
+              marginBottom: "20px",
+            }}
+          >
+            Payment Method
           </Card.Title>
-          {orderHistory.length === 0 ? (
-            <p className="text-muted">No previous orders found.</p>
-          ) : (
-            <div style={{ maxHeight: "250px", overflowY: "auto" }}>
-              <ListGroup variant="flush">
-                {orderHistory.map((order) => (
-                  <ListGroup.Item
-                    key={order._id}
-                    className="border-0 mb-3 px-0"
-                  >
-                    <div className="fw-bold mb-1">
-                      Order ID: <span className="text-muted">{order._id}</span>
-                    </div>
-                    <div className="small text-muted">
-                      <strong>Date:</strong>{" "}
-                      {new Date(order.createdAt).toLocaleString()}
-                    </div>
-                    <div className="small text-muted">
-                      <strong>Payment:</strong>{" "}
-                      {order.paymentMethod?.toUpperCase() || "N/A"}
-                    </div>
-                    <div className="small text-muted mb-2">
-                      <strong>Status:</strong> {order.status || "Processing"}
-                    </div>
 
-                    {order.items?.map((item, idx) => (
-                      <div key={idx} className="d-flex align-items-center mb-2">
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="rounded me-2"
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                              objectFit: "cover",
-                            }}
-                          />
-                        ) : (
-                          <div
-                            className="bg-secondary me-2"
-                            style={{
-                              width: "40px",
-                              height: "40px",
-                              borderRadius: "5px",
-                            }}
-                          />
-                        )}
-                        <div className="small flex-grow-1">
-                          {item.name} × {item.quantity} – ₹
-                          {item.price * item.quantity}
-                        </div>
-                      </div>
-                    ))}
+          <div style={{ marginBottom: "12px" }}>
+            <Form.Check
+              type="radio"
+              name="payment"
+              value="cod"
+              id="cod"
+              label="Cash on Delivery"
+              checked={paymentMethod === "cod"}
+              onChange={handlePaymentChange}
+              style={{ marginBottom: "10px" }}
+            />
+          </div>
 
-                    <div className="small text-muted">
-                      <strong>Address:</strong>{" "}
-                      {order.address || "No address available"}
-                    </div>
-                    <div className="fw-semibold">
-                      Total: ₹{order.totalAmount}
-                    </div>
-                  </ListGroup.Item>
-                ))}
-              </ListGroup>
-            </div>
-          )}
+          <div>
+            <Form.Check
+              type="radio"
+              name="payment"
+              value="card"
+              id="card"
+              label="Credit Card Payment"
+              checked={paymentMethod === "card"}
+              onChange={handlePaymentChange}
+            />
+          </div>
         </Card.Body>
       </Card>
+
+      {/* Order History section is commented out in the original code */}
     </Container>
   );
 };

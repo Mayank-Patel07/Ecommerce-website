@@ -38,7 +38,7 @@ router.post("/", fetchuser, async (req, res) => {
       // The signature is generated using the HMAC SHA256 algorithm with the secret key and the order ID and payment ID
       // Generate expected signature
       const generatedSignature = crypto
-        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+        .createHmac("sha256", process.env.Test_Key_Secret)
         .update(`${razorpayOrderId}|${razorpayPaymentId}`)
         .digest("hex");
 
